@@ -1,41 +1,97 @@
+/* Estilos base */
 body {
     background: rgb(61, 82, 110);
-    font: normal 15pt Arial; 
+    font: normal 15pt Arial;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
 }
 
 header {
     color: white;
     text-align: center;
-    background-color: rgba(161, 102, 102, 0.753); 
-    padding: 1px;
-    font-family: 'Comic Neue', cursive ;
-
+    background-color: rgba(161, 102, 102, 0.753);
+    padding: 5px;
+    font-family: 'Comic Neue', cursive;
+    width: 100%;
 }
 
 section {
-    background: white;
+    background: rgb(157, 162, 168);
     border-radius: 10px;
     padding: 20px;
-    width: 500px;
-    margin: auto;
+    width: 90%;
+    max-width: 500px;
+    margin: 20px auto;
     box-shadow: 5px 5px 10px rgba(5, 0, 0, 0.575);
-    margin-top: 10px;
-    background: rgb(157, 162, 168);
-    
+}
+
+#dados p {
+    margin: 10px 0;
+}
+
+input[type="number"] {
+    width: calc(100% - 22px);
+    padding: 5px;
+    margin-left: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+input[type="button"] {
+    margin: 10px 5px 0 0;
+    padding: 10px 20px;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+input[type="button"]:hover {
+    background-color: #45a049;
 }
 
 div#res {
-    font: normal 16pt bold ; 
-    
+    font: bold 16pt Arial;
+    margin-top: 20px;
+    padding: 10px;
+    background: #e0e0e0;
+    border-radius: 4px;
 }
-
 
 footer {
     text-align: center;
-    margin-top: 20px;
+    margin: 20px 0;
     color: #f1e7e7;
     font-size: 1.4rem;
-
-
+    width: 100%;
 }
 
+/* Estilos responsivos */
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+    
+    section {
+        padding: 15px;
+    }
+
+    header {
+        padding: 15px;
+    }
+
+    input[type="button"] {
+        padding: 10px;
+        width: 100%;
+        margin: 10px 0;
+    }
+
+    input[type="number"] {
+        width: 100%;
+    }
+}
