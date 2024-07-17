@@ -74,10 +74,11 @@ div#foto {
 footer {
     text-align: center;
     margin: 20px 0;
-    color: #f1e7e7;
-    font-size: 1.4rem;
+    color: #1f1c1c;
+    font-size: 1rem;
     width: 100%;
     box-sizing: border-box;
+    font-family: 'Open Sans', sans-serif;
 }
 
 
