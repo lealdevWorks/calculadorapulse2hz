@@ -3,7 +3,7 @@ const elemento1 = document.getElementById('res')
 elemento.style.fontWeight = 'bold'
 elemento1.style.fontWeight = 'bold'
 
-var img = window.document.getElementById('imagem')
+var img = window.document.getElementById('logo')
 
 function limpar() {
     const hz40 = document.getElementById('hz40')
