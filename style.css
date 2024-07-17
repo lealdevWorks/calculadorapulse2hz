@@ -66,6 +66,10 @@ div#res {
     background: #e0e0e0;
     border-radius: 4px;
 }
+div#foto {
+    margin-top: 20px;
+
+}
 
 footer {
     text-align: center;
@@ -76,7 +80,7 @@ footer {
     box-sizing: border-box;
 }
 
-/* Estilos responsivos */
+
 @media (max-width: 600px) {
     body {
         padding: 10px;
