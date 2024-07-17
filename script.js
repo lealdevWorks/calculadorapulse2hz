@@ -3,6 +3,8 @@ const elemento1 = document.getElementById('res')
 elemento.style.fontWeight = 'bold'
 elemento1.style.fontWeight = 'bold'
 
+var img = window.document.getElementById('imagem')
+
 function limpar() {
     const hz40 = document.getElementById('hz40')
     const constantek = document.getElementById('constantek')
@@ -62,6 +64,7 @@ function calcular() {
             K: ${hzemcont}<br>`
         
     }
+    img.src = 'logo.png'
 }
 
 
