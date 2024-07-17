@@ -64,7 +64,7 @@ function calcular() {
             K: ${hzemcont}<br>`
         
     }
-    img.src = 'Logo.png'
+    img.src = 'logo.png'
 }
 
 
