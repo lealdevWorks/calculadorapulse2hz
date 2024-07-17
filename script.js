@@ -61,7 +61,7 @@ window.onload = function() {
                 60 Km/h: ${vel60hz} Hz.<br>`;
         }
 
-        img.src = 'logo.png';
+        img.src = 'logo1.png';
     }
 
     document.getElementById('hz40').oninput = function() { handleInputChange(this); };
