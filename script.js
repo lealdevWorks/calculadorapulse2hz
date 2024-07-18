@@ -49,7 +49,7 @@ function calcular() {
         res.innerHTML = `
             Resultado:<br>
             50 Km/h:  ${vel50hz} Hz.<br>
-            50 Km/h:  ${vel60hz} Hz.<br>
+            60 Km/h:  ${vel60hz} Hz.<br>
             K: ${hzemcont}<br>`
     } else {
         const res = document.getElementById('res')
