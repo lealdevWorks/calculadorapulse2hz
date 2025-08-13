@@ -1,40 +1,317 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Hz</title>
-    <link rel="stylesheet" href="style.css">
-<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Hz</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400&display=swap" rel="stylesheet">
+
+  <!-- TABELA DE CHAVEAMENTOS (funciona offline, sem fetch) -->
+  <script src="k_table.js"></script>
+
+  <!-- Estilos das abas e da seção K (isolados) -->
+  <style>
+    [hidden]{display:none!important;}
+    .k-tabs{display:flex;gap:8px;margin:12px 0 10px;flex-wrap:wrap}
+    .k-tab-btn{appearance:none;border:1px solid rgba(0,0,0,.15);background:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:.95rem}
+    .k-tab-btn.k-active{border-color:#4CAF50;box-shadow:0 0 0 2px rgba(76,175,80,.25)}
+    .k-row{margin:10px 0}
+    .k-input{width:calc(100% - 20px);padding:10px;margin-top:5px;border:1px solid #ccc;border-radius:4px}
+    .k-btn{margin:10px 5px 0 0;padding:10px 20px;border:none;background:#4CAF50;color:#fff;border-radius:4px;cursor:pointer}
+    .k-btn:hover{background:#45a049}
+    .k-res{font:bold 16pt Arial,"Open Sans",sans-serif;margin-top:20px;padding:10px;background:#e0e0e0;border-radius:4px}
+    .k-callout{margin:6px 0 12px;padding:12px 14px;border-radius:8px;background:#fff7e6;border:1px solid #f1cf8a;box-shadow:inset 0 0 0 2px #ffe0a3;line-height:1.35}
+    .k-badge{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid #b95a00;background:#ffcc80;font-weight:bold}
+    .k-sub{margin-top:6px;font-size:.95rem;opacity:.95}
+    .k-blink{animation:kBlink 1.2s ease-in-out infinite}
+    @keyframes kBlink{0%,100%{filter:brightness(1)}50%{filter:brightness(.65)}}
+    .k-chav{margin-top:6px;font-size:14px;opacity:.95}
+    .k-ajuste{margin-top:4px;font-size:13px;opacity:.9}
+    .k-sign{display:flex;gap:10px;align-items:center;margin-top:6px}
+    .k-sign label{display:flex;gap:6px;align-items:center;font-size:.95rem}
+    .k-tip{font-size:12px;opacity:.85;margin-top:6px}
+    .k-err{color:#b00020;font-size:14px;margin-top:8px}
+  </style>
 </head>
 <body>
-    <section>
-        <header>
-            <img id="inicio" src="Inicio.png" alt="foto do logo">
-        </header>
-        <div id="dados">
-            <p>Hz de 40Km/h:
-                <input type="number" name="Hz de 40Km/h" id="hz40" oninput="handleInputChange(this)">
-            </p>
-            <p>Constante (K):
-                <input type="number" name="Constante (k)" id="constantek" oninput="handleInputChange(this)">
-            </p>
-            <p>
-                <input type="button" value="Calcular✔️" onclick="calcular()">
-                <input type="button" value="Limpar🧹" onclick="limpar()">
-            </p>
-        </div>
-        <div id="res">
-            Preparando o Resultado...
-        </div>
-        <div id="foto">
-            <img id="logo" src="logo.png" alt="foto do logo">
+  <section>
+    <header>
+      <img id="inicio" src="Inicio.png" alt="foto do logo">
+    </header>
 
+    <!-- Abas -->
+    <nav class="k-tabs" aria-label="Alternar abas">
+      <button id="tab-original-btn" class="k-tab-btn k-active" aria-controls="tab-original" aria-selected="true">
+        Conversor Hz → km/h (Original)
+      </button>
+      <button id="tab-kcor-btn" class="k-tab-btn" aria-controls="tab-kcor" aria-selected="false">
+        Calibrador de K (40 km/h)
+      </button>
+    </nav>
+
+    <!-- ===== ABA ORIGINAL (conteúdo intacto) ===== -->
+    <div id="tab-original">
+      <div id="dados">
+        <p>Hz de 40Km/h:
+          <input type="number" name="Hz de 40Km/h" id="hz40" oninput="handleInputChange(this)">
+        </p>
+        <p>Constante (K):
+          <input type="number" name="Constante (k)" id="constantek" oninput="handleInputChange(this)">
+        </p>
+        <p>
+          <input type="button" value="Calcular✔️" onclick="calcular()">
+          <input type="button" value="Limpar🧹" onclick="limpar()">
+        </p>
+      </div>
+      <div id="res">Preparando o Resultado...</div>
+      <div id="foto"><img id="logo" src="logo.png" alt="foto do logo"></div>
+      <hr>
+    </div>
+
+    <!-- ===== ABA NOVA: CALIBRADOR DE K (apenas Δ) ===== -->
+    <div id="tab-kcor" hidden aria-live="polite">
+      <div class="k-callout k-blink" role="status">
+        <strong>Instrução:</strong> Aplique <span class="k-badge">40 km/h</span> no bastidor.
+        <div class="k-sub">Teste com <b>K base = 8000</b>. Base técnica: a <b>40 km/h</b> ≈ <b>89 Hz</b>.</div>
+        <div class="k-tip">Informe apenas a <b>diferença</b> em relação a 40 km/h e se foi <b>a mais</b> (+) ou <b>a menos</b> (−).</div>
+      </div>
+
+      <div class="k-row">
+        <label for="kcorDiferenca"><b>Diferença (Δ)</b> em relação a 40 km/h — apenas o valor</label>
+        <input type="number" id="kcorDiferenca" class="k-input" placeholder="Ex: 26 (se marcou 66)" inputmode="decimal" step="any">
+        <div class="k-sign">
+          <label><input type="radio" name="kcorSinal" value="+" checked> Tacógrafo marcou <b>a mais</b> (+)</label>
+          <label><input type="radio" name="kcorSinal" value="-"> Tacógrafo marcou <b>a menos</b> (−)</label>
         </div>
-    </section>
-    <footer>
-        <p>&copy; Rafael Leal</p>
-    </footer>
-    <script src="script.js"></script>
+        <div class="k-tip">Ex.: marcou 66 → Δ=26 e sinal “+”. Marcou 35 → Δ=5 e sinal “−”.</div>
+        <div id="kcorErro" class="k-err" hidden></div>
+      </div>
+
+      <div class="k-row">
+        <button class="k-btn" onclick="kcorCalcularK()">Calcular K Correto✔️</button>
+        <button class="k-btn" onclick="kcorLimpar()">Limpar🧹</button>
+      </div>
+
+      <div id="kcorResultado" class="k-res">Aguardando cálculo...</div>
+    </div>
+  </section>
+
+  <footer><p>&copy; Rafael Leal</p></footer>
+
+  <!-- Seu JS original -->
+  <script src="script.js"></script>
+
+  <!-- Abas + cálculo de K + chaveamento dentro do quadro -->
+  <script>
+    (function(){
+      const btnOriginal = document.getElementById('tab-original-btn');
+      const btnKcor     = document.getElementById('tab-kcor-btn');
+      const tabOriginal = document.getElementById('tab-original');
+      const tabKcor     = document.getElementById('tab-kcor');
+
+      function show(tab){
+        const isOriginal = tab === 'original';
+        tabOriginal.hidden = !isOriginal;
+        tabKcor.hidden     =  isOriginal ? true : false;
+
+        btnOriginal.classList.toggle('k-active', isOriginal);
+        btnKcor.classList.toggle('k-active', !isOriginal);
+        btnOriginal.setAttribute('aria-selected', isOriginal ? 'true' : 'false');
+        btnKcor.setAttribute('aria-selected', !isOriginal ? 'true' : 'false');
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        show('original');
+        btnOriginal.addEventListener('click', () => show('original'));
+        btnKcor.addEventListener('click', () => show('kcor'));
+
+        // ENTER na primeira aba (Hz e K) → calcular()
+        const hz = document.getElementById('hz40');
+        if (hz) hz.addEventListener('keydown', (e)=>{ if(e.key==='Enter') calcular(); });
+        const kf = document.getElementById('constantek');
+        if (kf) kf.addEventListener('keydown', (e)=>{ if(e.key==='Enter') calcular(); });
+      });
+
+      // --- Cálculo K Correto (V_real = 40; K_base = 8000), somente Δ
+      const K_BASE = 8000, V_REAL_FIXA = 40;
+
+      function velocidadeMarcadaPorDelta(){
+        const difStr = (document.getElementById('kcorDiferenca')?.value || '').replace(',', '.');
+        let dif = parseFloat(difStr);
+        if (isNaN(dif) || dif < 0) return NaN;
+        dif = Math.abs(dif);
+
+        let sinal = '+';
+        const radios = document.querySelectorAll('input[name="kcorSinal"]');
+        for (const r of radios){ if (r.checked) { sinal = r.value; break; } }
+
+        if (sinal === '-' && dif >= V_REAL_FIXA) return -1; // erro
+
+        return (sinal === '+') ? (V_REAL_FIXA + dif) : (V_REAL_FIXA - dif);
+      }
+
+      window.kcorCalcularK = function(){
+        const saida = document.getElementById('kcorResultado');
+        const errEl = document.getElementById('kcorErro');
+
+        const vMarcada = velocidadeMarcadaPorDelta();
+
+        if (vMarcada === -1){
+          errEl.hidden = false;
+          errEl.textContent = 'Diferença inválida: com “a menos (−)”, Δ deve ser menor que 40.';
+          if (saida) saida.textContent = 'Aguardando cálculo...';
+          const c1 = document.getElementById('kcor-chav'); if (c1) c1.textContent = '';
+          const c2 = document.getElementById('kcor-ajuste'); if (c2) c2.textContent = '';
+          return;
+        } else {
+          errEl.hidden = true;
+          errEl.textContent = '';
+        }
+        if (!isFinite(vMarcada) || vMarcada <= 0){
+          if (saida) saida.textContent = 'Informe Δ válido e o sinal correto (a mais / a menos).';
+          return;
+        }
+
+        const kNovo = K_BASE * (vMarcada / V_REAL_FIXA);
+
+        if (saida) saida.textContent = `${kNovo.toFixed(0)} pulsos/km`;
+
+        showChaveamentoInside(kNovo, '#kcorResultado', 'kcor-chav');
+
+        const tip = ensureChildInResult('#kcorResultado', 'kcor-ajuste');
+        if (tip) {
+          if (kNovo > K_BASE)      tip.textContent = 'Ajuste: aumentar K (a velocidade indicada vai baixar).';
+          else if (kNovo < K_BASE) tip.textContent = 'Ajuste: diminuir K (a velocidade indicada vai subir).';
+          else                     tip.textContent = 'Ajuste: K igual ao base.';
+        }
+      };
+
+      window.kcorLimpar = function(){
+        const vd = document.getElementById('kcorDiferenca');
+        if (vd) vd.value = '';
+        const saida = document.getElementById('kcorResultado');
+        if (saida) saida.textContent = 'Aguardando cálculo...';
+        const c1 = document.getElementById('kcor-chav'); if (c1) c1.textContent = '';
+        const c2 = document.getElementById('kcor-ajuste'); if (c2) c2.textContent = '';
+        const errEl = document.getElementById('kcorErro'); if (errEl){ errEl.hidden = true; errEl.textContent = ''; }
+      };
+    })();
+
+    /* =======================
+       CHAVEAMENTO AUTOMÁTICO (DENTRO DO QUADRO)
+       ======================= */
+    let __K_ROWS__ = (window.__K_ROWS__ || []);
+
+    // ——— MODO APROXIMADO ———
+    function findChaveamentoAprox(K) {
+      if (!__K_ROWS__ || !__K_ROWS__.length) return {row:null, approx:false};
+      const k = Math.round(Number(K));
+      if (!isFinite(k)) return {row:null, approx:false};
+
+      // Exato
+      let hit = __K_ROWS__.find(r => k >= r.from && k <= r.to);
+      if (hit) return {row:hit, approx:false};
+
+      // Aproximado — menor distância do K até a faixa [from,to]
+      let best = null, bestDist = Infinity;
+      for (const r of __K_ROWS__) {
+        let dist = (k < r.from) ? (r.from - k) : (k > r.to ? k - r.to : 0);
+        if (dist < bestDist) { bestDist = dist; best = r; }
+      }
+      return {row:best, approx:true};
+    }
+
+    function ensureChildInResult(parentSelector, childId){
+      const parent = document.querySelector(parentSelector);
+      if (!parent) return null;
+      let child = document.getElementById(childId);
+      if (!child){
+        child = document.createElement('div');
+        child.id = childId;
+        child.className = (childId.includes('ajuste') ? 'k-ajuste' : 'k-chav');
+        parent.appendChild(child);
+      }
+      return child;
+    }
+
+    function showChaveamentoInside(K, parentSelector, childId){
+      const holder = ensureChildInResult(parentSelector, childId);
+      if (!holder) return;
+
+      const {row, approx} = findChaveamentoAprox(K);
+      if (!row) { holder.textContent = ''; return; }
+
+      const keys = (row.keys || []).sort((a,b)=>a-b).join('-');
+      const kTxt = Math.round(Number(K));
+      holder.textContent =
+        `(Chaveamento de K (${kTxt}) ${keys})` +
+        (approx ? ` (aprox., faixa ${row.from}–${row.to})` : '');
+    }
+
+    // —— utilitários para pegar K do resultado/campos (aba original) ——
+    function parseKFromText(txt){
+      let m = txt.match(/(\d{3,7})\s*pulsos\s*\/\s*km/i);   // “… #### pulsos/km”
+      if (m) return Number(m[1]);
+      m = txt.match(/\bK[^0-9]{0,3}(\d{3,7})\b/i);          // “K: ####”, “K - ####”, “K ####”
+      if (m) return Number(m[1]);
+      const all = [...txt.matchAll(/\b(\d{4,7})\b/g)].map(m=>Number(m[1])); // maior 4+ dígitos
+      if (all.length) return Math.max(...all);
+      return null;
+    }
+    function resolveKForOriginal(){
+      const resEl = document.getElementById('res');
+      const txt = (resEl?.innerText || resEl?.textContent || '');
+      let kVal = parseKFromText(txt);
+      if (kVal == null){
+        const kField = document.getElementById('constantek');
+        const v = (kField?.value || '').replace(',', '.');
+        const kParsed = parseFloat(v);
+        if (isFinite(kParsed) && kParsed > 0) kVal = kParsed;
+      }
+      if (kVal == null){
+        const hzField = document.getElementById('hz40');
+        const hzv = (hzField?.value || '').replace(',', '.');
+        const hzParsed = parseFloat(hzv);
+        if (isFinite(hzParsed) && hzParsed > 0) kVal = hzParsed * 90; // a 40 km/h
+      }
+      return kVal;
+    }
+    function updateChaveamentoOriginal(){
+      const kVal = resolveKForOriginal();
+      if (kVal != null) showChaveamentoInside(kVal, '#res', 'chaveamento-info');
+      else { const c = document.getElementById('chaveamento-info'); if (c) c.textContent=''; }
+    }
+
+    // —— Garante atualização SEMPRE que o #res mudar (Enter/Calcular) ——
+    document.addEventListener('DOMContentLoaded', () => {
+      const resEl = document.getElementById('res');
+      if (!resEl) return;
+      const debounced = (() => {
+        let t = null;
+        return () => { clearTimeout(t); t = setTimeout(updateChaveamentoOriginal, 50); };
+      })();
+      const mo = new MutationObserver(debounced);
+      mo.observe(resEl, {childList:true, characterData:true, subtree:true});
+    });
+
+    // —— Integração com calcular()/limpar() (reforço) ——
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof window.calcular === 'function') {
+        const __origCalc = window.calcular;
+        window.calcular = function(){
+          __origCalc.apply(this, arguments);
+          setTimeout(updateChaveamentoOriginal, 50);
+        };
+      }
+      if (typeof window.limpar === 'function') {
+        const __origClear = window.limpar;
+        window.limpar = function(){
+          __origClear.apply(this, arguments);
+          const c = document.getElementById('chaveamento-info'); if (c) c.textContent='';
+        };
+      }
+    });
+  </script>
 </body>
 </html>
